@@ -5,7 +5,7 @@
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
-use std::process::Command;
+mod common;
 
 fn fake_gh(dir: &Path) {
     let path = dir.join("gh");
@@ -33,12 +33,15 @@ fn job_views_passthrough_output_and_original_arguments() {
         vec!["--job=67890"],
         vec!["-j67890"],
         vec!["--job", "67890", "12345"],
+        vec!["-vj", "67890"],
+        vec!["-vj67890"],
+        vec!["--template", "--", "--job", "67890"],
+        vec!["--job", "--", "12345"],
     ] {
-        let output = Command::new(env!("CARGO_BIN_EXE_rtk"))
+        let output = common::rtk_command()
             .args(["gh", "run", "view"])
             .args(&args)
             .env("PATH", &path)
-            .env("RTK_DB_PATH", dir.path().join("rtk.db"))
             .output()
             .expect("run rtk gh run view");
         assert!(output.status.success(), "failed for {args:?}: {output:?}");
